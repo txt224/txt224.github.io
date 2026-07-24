@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能产品选型工具</title>
+    <style>
+        :root {
+            --primary-color: #00338D;
+            --primary-hover: #002266;
+            --bg-color: #f4f7f6;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #cccccc;
+            --error-color: #d9534f;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        p.subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+
+        /* TAB 切换样式 */
+        .tab-nav {
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            margin-bottom: 25px;
+            gap: 4px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px 10px;
+            background: none;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+            background-color: #f0f4f9;
+            border-radius: 6px 6px 0 0;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #444;
+        }
+
+        .form-group select, .form-group input {
+            padding: 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+            background-color: #fff;
+        }
+
+        .form-group select:focus, .form-group input:focus {
+            border-color: var(--primary-color);
+        }
+
+        /* 气体下拉框样式 */
+        .search-select-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 100%;
+            box-sizing: border-box;
+            font-weight: normal;
+            font-size: 15px;
+        }
+
+        .dropdown-list {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            background-color: #fff;
+            border: 1px solid var(--primary-color);
+            border-top: none;
+            border-radius: 0 0 6px 6px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .dropdown-item {
+            padding: 10px 14px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: normal;
+            color: #222;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f0f4f9;
+            color: var(--primary-color);
+        }
+
+        .flow-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .flow-input-group input {
+            flex: 2;
+        }
+
+        .flow-input-group select {
+            flex: 1;
+        }
+
+        /* 选型结果卡片 */
+        .result-box {
+            margin-top: 35px;
+            background-color: #f8fafc;
+            border: 2px dashed var(--primary-color);
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .result-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .model-code {
+            font-size: 26px;
+            font-weight: bold;
+            color: var(--primary-color);
+            letter-spacing: 1.5px;
+            font-family: 'Courier New', Courier, monospace;
+            word-break: break-all;
+        }
+
+        .error-msg {
+            color: var(--error-color);
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .bin-info {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .copy-btn {
+            margin-top: 15px;
+            padding: 10px 24px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .copy-btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .copy-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>智能选型工具</h1>
+    <p class="subtitle">根据不同产品架构切换选型模式，自动精准生成型号编码</p>
+
+    <!-- 系列 Tab 切换 -->
+    <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchSeries('GT1')">GT-110 系列</button>
+        <button class="tab-btn" onclick="switchSeries('GT1020')">GT-1000 / 2000 系列</button>
+        <button class="tab-btn" onclick="switchSeries('PT')">PT 系列 (变送器)</button>
+        <button class="tab-btn" onclick="switchSeries('PS')">PS 系列 (压力开关)</button>
+        <button class="tab-btn" onclick="switchSeries('TARGETS')">TARGETS 系列</button>
+    </div>
+
+    <!-- ===== GT-1 系列界面表单 ===== -->
+    <div id="formGT1" class="form-grid">
+        <div class="form-group">
+            <label>产品系列与型号</label>
+            <input type="text" value="GT-1 (标准型)" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="gasSearchGT1">选择/搜索气体</label>
+            <div class="search-select-container">
+                <input type="text" id="gasSearchGT1" class="search-input" placeholder="输入气体名称 (如: N2, He)..." autocomplete="off" onfocus="showGasList('GT1')" oninput="filterGases('GT1')">
+                <div class="dropdown-list" id="gasDropdownGT1"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="flowValueGT1">输入满量程流量</label>
+            <div class="flow-input-group">
+                <input type="number" id="flowValueGT1" value="30" placeholder="例如: 30" oninput="updateModel()">
+                <select id="flowUnitGT1" onchange="updateModel()">
+                    <option value="SCCM" selected>SCCM</option>
+                    <option value="SLM">SLM</option>
+                </select>
+            </div>
+            <div class="bin-info" id="flowDetailGT1">匹配代号: 11 (N2)</div>
+        </div>
+
+        <div class="form-group">
+            <label for="valveGT1">阀门类型</label>
+            <select id="valveGT1" onchange="updateModel()">
+                <option value="NC" selected>NC: 常闭</option>
+                <option value="MT">MT: 流量计 (无阀)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="portGT1">气路接口</label>
+            <select id="portGT1" onchange="updateModel()">
+                <option value="VS" selected>VS: Body 1-1/8", 124 mm 1/4" VCR</option>
+                <option value="SW">SW: Body 1-1/2", 127 mm 1/4" Swagelok</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="protocolGT1">通信协议</label>
+            <select id="protocolGT1" onchange="updateModel()">
+                <option value="ES" selected>ES: EtherCAT, Side of case, 5-pin M8</option>
+                <option value="RT">RT: RS485/Analog, Top of case, 9-Pin Type D</option>
+                <option value="DS">DS: DeviceNet, Side of case, 5-pin M12</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ===== GT-10/20 系列界面表单 ===== -->
+    <div id="formGT1020" class="form-grid" style="display:none;">
+        <div class="form-group">
+            <label for="modelGT1020">型号代码</label>
+            <select id="modelGT1020" onchange="onGTModelChange()">
+                <option value="10">GT-10 (标准型)</option>
+                <option value="20" selected>GT-20 (压力不敏感型)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="gasSearchGT1020">选择/搜索气体</label>
+            <div class="search-select-container">
+                <input type="text" id="gasSearchGT1020" class="search-input" placeholder="输入气体名称 (如: N2, He)..." autocomplete="off" onfocus="showGasList('GT1020')" oninput="filterGases('GT1020')">
+                <div class="dropdown-list" id="gasDropdownGT1020"></div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="flowValueGT1020">输入满量程流量 (Full Scale Flow)</label>
+            <div class="flow-input-group">
+                <input type="number" id="flowValueGT1020" value="1" placeholder="例如: 1000" oninput="updateModel()">
+                <select id="flowUnitGT1020" onchange="updateModel()">
+                    <option value="SLM" selected>SLM</option>
+                    <option value="SCCM">SCCM</option>
+                </select>
+            </div>
+            <div class="bin-info" id="binDetail">匹配代号: Bin 04</div>
+        </div>
+
+        <div class="form-group">
+            <label for="valveGT1020">阀门类型</label>
+            <select id="valveGT1020" onchange="updateModel()">
+                <option value="NC" selected>NC - 常闭</option>
+                <option value="NO">NO - 常开</option>
+                <option value="MT">MT - 流量计 (无阀)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="portGT1020">气路接口</label>
+            <select id="portGT1020" onchange="updateModel()">
+                <option value="VS" selected>VS - Body 1-1/8", 124 mm 1/4" VCR</option>
+                <option value="CX">CX - Body 1-1/8", 92 mm C-SEAL</option>
+                <option value="WX">WX - Body 1-1/8", 92 mm W-SEAL</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="protocolGT1020">通信协议</label>
+            <select id="protocolGT1020" onchange="updateModel()">
+                <option value="RT">RT - RS485/Analog, Top, 9-Pin Type D</option>
+                <option value="DT">DT - DeviceNet, Top, 5-Pin M12</option>
+                <option value="DS">DS - DeviceNet, Side, 5-Pin M12</option>
+                <option value="ES" selected>ES - EtherCAT, Side, 5-Pin M8</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ===== PT 系列高纯压力变送器表单 ===== -->
+    <div id="formPT" class="form-grid" style="display:none;">
+        <div class="form-group">
+            <label>I. 产品系列 & II. 类型</label>
+            <input type="text" value="PT-8 (高纯压力变送器 - 玻璃微熔式)" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="ptMat">III. 膜片材料</label>
+            <select id="ptMat" onchange="updateModel()">
+                <option value="000" selected>000 - 316L VIM / VAR</option>
+                <option value="001">001 - 哈氏合金</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ptPort">IV. 气路接口</label>
+            <select id="ptPort" onchange="updateModel()">
+                <option value="W1">W1 - 1.5" W-SEAL</option>
+                <option value="W2" selected>W2 - 1.125" W-SEAL</option>
+                <option value="C1">C1 - 1.5" C-SEAL</option>
+                <option value="C2">C2 - 1.125" C-SEAL</option>
+                <option value="V1">V1 - Fixed 1/4" Male Face Seal</option>
+                <option value="VF">VF - 1/4" Swivel Female Face Seal</option>
+                <option value="VM">VM - 1/4" Swivel Male Face Seal</option>
+                <option value="VV">VV - Fixed 1/4" Male Face Seal Flow-Through</option>
+                <option value="FF">FF - 1/4" Swivel Female Face Seal Flow-Through</option>
+                <option value="MM">MM - 1/4" Swivel Male Face Seal Flow-Through</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ptOrient">V. 线缆方向</label>
+            <select id="ptOrient" onchange="updateModel()">
+                <option value="PL">PL - 平行气路</option>
+                <option value="VT" selected>VT - 垂直气路</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ptAnalog">VI. 模拟输出信号</label>
+            <select id="ptAnalog" onchange="updateModel()">
+                <option value="005" selected>005 - 0 ~ 5 V DC</option>
+                <option value="010">010 - 0 ~ 10 V DC</option>
+                <option value="105">105 - 1 ~ 5 V DC</option>
+                <option value="510">510 - 5 ~ 10 V DC</option>
+                <option value="420">420 - 4 ~ 20 mA DC</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ptSwitch">VII. 开关量类型</label>
+            <select id="ptSwitch" onchange="updateModel()">
+                <option value="N2" selected>N2 - 2路 NPN</option>
+                <option value="P2">P2 - 2路 PNP</option>
+                <option value="N1">N1 - 1路 NPN</option>
+                <option value="P1">P1 - 1路 PNP</option>
+                <option value="NO">NO - NONE</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ptElec">VIII. 电气接口</label>
+            <select id="ptElec" onchange="updateModel()">
+                <option value="D15" selected>D15 - D-Sub 15PIN</option>
+                <option value="P09">P09 - Pigtail 9 PIN</option>
+                <option value="P06">P06 - Pigtail 6 PIN</option>
+                <option value="P05">P05 - Pigtail 5 PIN</option>
+                <option value="P04">P04 - Pigtail 4 PIN</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="ptRange">IX. 测量类型和量程</label>
+            <select id="ptRange" onchange="updateModel()">
+                <option value="A1" selected>A1 - 0 ~ 75 psi 绝压</option>
+                <option value="A2">A2 - 0 ~ 100 psi 绝压</option>
+                <option value="A3">A3 - 0 ~ 150 psi 绝压</option>
+                <option value="G1">G1 - 0 ~ 75 psi 表压</option>
+                <option value="G2">G2 - 0 ~ 100 psi 表压</option>
+                <option value="G3">G3 - 0 ~ 150 psi 表压</option>
+                <option value="R1">R1 - -14.5 ~ 75 psi 复合压</option>
+                <option value="R2">R2 - -14.5 ~ 100 psi 复合压</option>
+                <option value="R3">R3 - -14.5 ~ 150 psi 复合压</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ===== PS 系列高纯压力开关表单 ===== -->
+    <div id="formPS" class="form-grid" style="display:none;">
+        <div class="form-group">
+            <label>I. 产品系列 & II. 类型</label>
+            <input type="text" value="PS-7 (高纯压力开关 - 扩散硅式)" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="psMat">III. 膜片材料</label>
+            <select id="psMat" onchange="updateModel()">
+                <option value="000" selected>000 - 316L</option>
+                <option value="001">001 - 哈氏合金</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="psPort">IV. 气路接口</label>
+            <select id="psPort" onchange="updateModel()">
+                <option value="W2" selected>W2 - 1.125" W-SEAL</option>
+                <option value="C2">C2 - 1.125" C-SEAL</option>
+                <option value="V1">V1 - Fixed 1/4" Male Face Seal</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="psSwitch">V. 开关量类型</label>
+            <select id="psSwitch" onchange="updateModel()">
+                <option value="N" selected>N - NPN</option>
+                <option value="P">P - PNP</option>
+                <option value="R">R - Solid State Relay Type</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="psElec">VI. 电气接口</label>
+            <select id="psElec" onchange="updateModel()">
+                <option value="M05" selected>M05 - M12 Connector 5 pin</option>
+                <option value="D09">D09 - D-Sub 9 Pin</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="psAlarm">VII. 报警模式</label>
+            <select id="psAlarm" onchange="updateModel()">
+                <option value="L" selected>L - 低于压力设定值报警</option>
+                <option value="H">H - 高于压力设定值报警</option>
+                <option value="X">X - 可配置报警模式</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="psPoint">VIII. 压力报警点</label>
+            <select id="psPoint" onchange="updateModel()">
+                <option value="380" selected>380 - 压力报警点 Torr</option>
+                <option value="XXX">XXX - 可配置</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- ===== TARGETS 系列流量比例控制器表单 ===== -->
+    <div id="formTARGETS" class="form-grid" style="display:none;">
+        <div class="form-group">
+            <label>I. 产品系列</label>
+            <input type="text" value="TARGETS (流量比例控制器)" disabled>
+        </div>
+
+        <div class="form-group">
+            <label for="targetsChannels">II. 通道数量</label>
+            <select id="targetsChannels" onchange="updateModel()">
+                <option value="2" selected>2 - 2通道</option>
+                <option value="3">3 - 3通道</option>
+                <option value="4">4 - 4通道</option>
+                <option value="N">N - N通道 (定制规格)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="targetsRange">III. 单通道量程</label>
+            <select id="targetsRange" onchange="updateModel()">
+                <option value="005">005 - 500 SCCM</option>
+                <option value="010" selected>010 - 1000 SCCM</option>
+                <option value="020">020 - 2000 SCCM</option>
+                <option value="030">030 - 3000 SCCM</option>
+                <option value="100">100 - 10000 SCCM</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="targetsValve">IV. 阀门类型</label>
+            <select id="targetsValve" onchange="updateModel()">
+                <option value="NC" selected>NC - 常闭</option>
+                <option value="NO">NO - 常开</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="targetsProtocol">V. 通信协议</label>
+            <select id="targetsProtocol" onchange="updateModel()">
+                <option value="DT" selected>DT - DeviceNet, Top of case, 5-Pin M12</option>
+                <option value="DS">DS - DeviceNet, Side of case, 5-Pin M12</option>
+                <option value="ET">ET - EtherCAT, Top of case, 5-Pin M8</option>
+                <option value="ES">ES - EtherCAT, Side of case, 5-Pin M8</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- 结果展示 -->
+    <div class="result-box">
+        <div class="result-title">自动匹配的产品型号编码</div>
+        <div class="model-code" id="resultCode">GT-111-NC-VS-ES,N2,30SCCM</div>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">复制完整型号</button>
+    </div>
+</div>
+
+<script>
+    let activeSeries = 'GT1'; // 默认当前选中 GT1 系列
+
+    const gasesList = [
+        { gasNo:"1", symbol:"He", name:"Helium", bins:{"01":[13,36],"02":[37,120],"03":[121,360],"04":[361,1200],"05":[1201,3600],"06":[3601,12000],"07":[12001,36000],"08":[36001,60000]} },
+        { gasNo:"2", symbol:"Ne", name:"Neon", bins:{"01":[13,36],"02":[37,120],"03":[121,360],"04":[361,1200],"05":[1201,3500],"06":[3501,11500],"07":[11501,32000],"08":[32001,54000]} },
+        { gasNo:"4", symbol:"Ar", name:"Argon", bins:{"01":[13,36],"02":[37,120],"03":[121,360],"04":[361,1200],"05":[1201,3500],"06":[3501,11000],"07":[11001,30000],"08":[30001,43000],"09":[43001,60000],"9.5":[60001,95000],"10":[95001,176000]} },
+        { gasNo:"5", symbol:"Kr", name:"Krypton", bins:{"01":[11,24],"02":[25,80],"03":[81,240],"04":[241,800],"05":[801,2200],"06":[2201,7000],"07":[7001,22000],"08":[22001,37000]} },
+        { gasNo:"6", symbol:"Xe", name:"Xenon", bins:{"01":[11,22],"02":[23,80],"03":[81,240],"04":[241,700],"05":[701,2000],"06":[2001,6500],"07":[6501,20000],"08":[20001,33000]} },
+        { gasNo:"7", symbol:"H2", name:"Hydrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000],"09":[50001,100000],"9.5":[50001,100000],"10":[100001,200000]} },
+        { gasNo:"9", symbol:"CO", name:"Carbon Monoxide", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} },
+        { gasNo:"10", symbol:"HBr", name:"Hydrogen Bromide", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,22000],"08":[22001,38000]} },
+        { gasNo:"11", symbol:"HCl", name:"Hydrogen Chloride", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[27001,46000]} },
+        { gasNo:"12", symbol:"HF", name:"Hydrogen Fluoride", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} },
+        { gasNo:"13", symbol:"N2", name:"Nitrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000],"09":[50001,100000],"9.5":[50001,100000],"10":[100001,200000]} },
+        { gasNo:"14", symbol:"D2", name:"Deuterium", bins:{"04":[301,1000]} },
+        { gasNo:"15", symbol:"O2", name:"Oxygen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000],"09":[50001,100000],"9.5":[50001,100000],"10":[100001,200000]} },
+        { gasNo:"16", symbol:"NO", name:"Nitric Oxide", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} },
+        { gasNo:"17", symbol:"HI", name:"Hydrogen Iodide", bins:{"01":[1,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,7000],"07":[7001,20000],"08":[20001,34000]} },
+        { gasNo:"18", symbol:"F2", name:"Fluorine", bins:{"01":[8,22],"02":[23,80],"03":[81,240],"04":[241,700],"05":[701,2500],"06":[2501,7000],"07":[7001,20000],"08":[20001,34000]} },
+        { gasNo:"19", symbol:"Cl2", name:"Chlorine", bins:{"01":[10,27],"02":[28,90],"03":[91,270],"04":[271,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,45000]} },
+        { gasNo:"22", symbol:"H2S", name:"Hydrogen Sulfide", bins:{"01":[9,24],"02":[25,80],"03":[81,240],"04":[241,800],"05":[801,2400],"06":[2401,8000],"07":[8001,23000],"08":[23001,39000]} },
+        { gasNo:"25", symbol:"CO2", name:"Carbon Dioxide", bins:{"01":[9,24],"02":[25,80],"03":[81,240],"04":[241,800],"05":[801,2400],"06":[2401,8000],"07":[8001,24000],"08":[24001,40000]} },
+        { gasNo:"27", symbol:"N2O", name:"Nitrous Oxide", bins:{"01":[7,21],"02":[22,70],"03":[71,200],"04":[201,666],"05":[667,2000],"06":[2001,6666],"07":[6667,20000],"08":[20001,33333]} },
+        { gasNo:"28", symbol:"CH4", name:"Methane", bins:{"01":[8,21],"02":[22,70],"03":[71,210],"04":[211,700],"05":[701,2100],"06":[2101,7000],"07":[7001,21000],"08":[21001,35000]} },
+        { gasNo:"29", symbol:"NH3", name:"Ammonia", bins:{"01":[8,22],"02":[23,73],"03":[74,220],"04":[221,733],"05":[734,2200],"06":[2201,7333],"07":[7334,22000],"08":[22001,36667]} },
+        { gasNo:"31", symbol:"PH3", name:"Phosphine", bins:{"01":[8,22],"02":[23,73],"03":[74,220],"04":[221,733],"05":[734,2200],"06":[2201,7333],"07":[7334,22000],"08":[22001,36665]} },
+        { gasNo:"32", symbol:"SO2", name:"Sulfur Dioxide", bins:{"01":[8,22],"02":[23,73],"03":[74,220],"04":[221,733],"05":[734,2200],"06":[2201,7333],"07":[7334,22000],"08":[22001,36665]} },
+        { gasNo:"33", symbol:"CH3F", name:"Methyl Fluoride", bins:{"01":[8,21],"02":[22,70],"03":[71,200],"04":[201,666],"05":[667,2000],"06":[2001,6666],"07":[6667,20000],"08":[20001,33333]} },
+        { gasNo:"34", symbol:"COS", name:"Carbonyl Sulfide", bins:{"01":[8,19],"02":[20,65],"03":[66,195],"04":[196,650],"05":[651,1950],"06":[1951,6500],"07":[6501,19500],"08":[19501,32500]} },
+        { gasNo:"38", symbol:"C2H4", name:"Ethylene", bins:{"01":[7,18],"02":[19,60],"03":[61,180],"04":[181,600],"05":[601,1800],"06":[1801,6000],"07":[6001,18000],"08":[18001,30000]} },
+        { gasNo:"39", symbol:"SiH4", name:"Silane", bins:{"01":[7,17],"02":[18,59],"03":[60,177],"04":[178,590],"05":[591,1770],"06":[1771,5900],"07":[5901,17700],"08":[17701,29500]} },
+        { gasNo:"42", symbol:"C2H2", name:"Acetylene", bins:{"01":[6,17],"02":[18,59],"03":[60,177],"04":[1778,590],"05":[591,1770],"06":[1771,5000],"07":[5001,15000],"08":[15001,25000]} },
+        { gasNo:"43", symbol:"GeH4", name:"Germane", bins:{"01":[6,15],"02":[16,50],"03":[51,150],"04":[151,500],"05":[501,1500],"06":[1501,5000],"07":[5001,15000],"08":[15001,25000]} },
+        { gasNo:"49", symbol:"CHF3", name:"Fluoroform", bins:{"01":[6,15],"02":[16,50],"03":[51,150],"04":[151,500],"05":[501,1500],"06":[1501,5000],"07":[5001,15000],"08":[15001,25000]} },
+        { gasNo:"53", symbol:"NF3", name:"Nitrogen Trifluoride", bins:{"01":[5,14],"02":[15,45],"03":[46,135],"04":[136,450],"05":[451,1350],"06":[1351,4500],"07":[4501,13500],"08":[13501,22500]} },
+        { gasNo:"54", symbol:"C2H6", name:"Ethane", bins:{"01":[5,13],"02":[14,45],"03":[46,135],"04":[136,450],"05":[451,1350],"06":[1351,4500],"07":[4501,13500],"08":[13501,22500]} },
+        { gasNo:"58", symbol:"B2H6", name:"Diborane", bins:{"01":[5,13],"02":[14,43],"03":[44,129],"04":[130,430],"05":[431,1290],"06":[1291,4300],"07":[4301,12900],"08":[12901,21500]} },
+        { gasNo:"61", symbol:"C3H6-C", name:"Cyclopropane", bins:{"01":[5,11],"02":[12,38],"03":[39,114],"04":[115,380],"05":[381,1140],"06":[1141,3800],"07":[3801,11400],"08":[11401,19000]} },
+        { gasNo:"63", symbol:"CF4", name:"Carbon Tetrafluoride", bins:{"01":[5,12],"02":[13,40],"03":[41,120],"04":[121,400],"05":[401,1200],"06":[1201,4000],"07":[4001,12000],"08":[12001,20000]} },
+        { gasNo:"67", symbol:"SiH2Cl2", name:"Dichlorosilane", bins:{"01":[5,12],"02":[13,40],"03":[41,120],"04":[121,400],"05":[401,1200],"06":[1201,4000],"07":[4001,12000],"08":[12001,20000]} },
+        { gasNo:"69", symbol:"C3H6", name:"Propylene", bins:{"01":[3,10],"02":[11,33],"03":[34,100],"04":[101,333],"05":[334,1000],"06":[1001,3333],"07":[3334,10000],"08":[11401,19000]} },
+        { gasNo:"70", symbol:"BCl3", name:"Boron Trichloride", bins:{"01":[5,12],"02":[13,43],"03":[44,129],"04":[130,430],"05":[431,1290],"06":[1291,4200],"07":[4301,12600],"08":[7001,12000]} },
+        { gasNo:"77", symbol:"ClF3", name:"Chlorine Trifluoride", bins:{"05":[421,1260],"06":[1261,4300],"07":[4201,12600]} },
+        { gasNo:"86", symbol:"SF4", name:"Sulfur Tetrafluoride", bins:{"01":[4,10],"02":[11,35],"03":[36,105],"04":[106,350],"05":[351,1050],"06":[1051,3500],"07":[3501,10500],"08":[10501,17500]} },
+        { gasNo:"88", symbol:"SiF4", name:"Silicon Tetrafluoride", bins:{"01":[4,10],"02":[11,35],"03":[36,105],"04":[106,350],"05":[351,1050],"06":[1051,3500],"07":[3501,10500],"08":[10501,17500]} },
+        { gasNo:"97", symbol:"Si2H6", name:"Disilane", bins:{"01":[4,9],"02":[10,30],"03":[31,90],"04":[91,300],"05":[301,900],"06":[901,3000],"07":[3001,9000],"08":[9001,15000]} },
+        { gasNo:"109", symbol:"C3H9N", name:"Trimethylamine", bins:{"01":[3,7],"02":[8,26],"03":[27,78],"04":[79,260],"05":[261,780],"06":[781,2600],"07":[2601,7800],"08":[7801,13000]} },
+        { gasNo:"110", symbol:"SF6", name:"Sulfur Hexafluoride", bins:{"01":[3,7],"02":[8,25],"03":[26,75],"04":[76,250],"05":[251,750],"06":[751,2500],"07":[2501,7500],"08":[7501,12500]} },
+        { gasNo:"118", symbol:"C2F6", name:"Hexafluoroethane", bins:{"01":[3,7],"02":[8,24],"03":[25,72],"04":[73,240],"05":[241,720],"06":[721,2400],"07":[2401,7200],"08":[7201,12000]} },
+        { gasNo:"121", symbol:"WF6", name:"Tungsten Hexafluoride", bins:{"01":[3,7],"02":[8,23],"03":[24,69],"04":[70,230],"05":[231,690],"06":[691,2300],"07":[2301,4800],"08":[4801,8100]} },
+        { gasNo:"128", symbol:"C3F8", name:"Perfluoropropane", bins:{"01":[2,5],"02":[6,17],"03":[18,51],"04":[52,170],"05":[171,510],"06":[511,1700],"07":[1701,5100],"08":[5101,8500]} },
+        { gasNo:"129", symbol:"C4F8", name:"Octafluorocyclobutane", bins:{"01":[2,4],"02":[5,15],"03":[16,45],"04":[46,150],"05":[151,450],"06":[451,1500],"07":[1501,4500],"08":[4501,7500]} },
+        { gasNo:"138", symbol:"C3F6", name:"Hexafluoropropene", bins:{"04":[64,210],"05":[211,630]} },
+        { gasNo:"147", symbol:"SiHCl3", name:"Trichlorosilane", bins:{"01":[4,11],"02":[12,37],"03":[38,111],"04":[112,370],"05":[371,1110],"06":[1111,2000],"07":[2001,3700],"08":[3701,6200]} },
+        { gasNo:"156", symbol:"C2H2F4", name:"Tetrafluoroethane", bins:{"01":[4,9],"02":[10,30],"03":[31,90],"04":[91,300],"05":[301,900],"06":[901,3000],"07":[3001,9000],"08":[9001,15000]} },
+        { gasNo:"160", symbol:"CH2F2", name:"Difluoromethane", bins:{"01":[7,18],"02":[19,60],"03":[61,180],"04":[181,600],"05":[601,1800],"06":[1801,6000],"07":[6001,18000],"08":[18001,30000]} },
+        { gasNo:"185", symbol:"CH3SiH3", name:"Methylsilane", bins:{"01":[5,12],"02":[13,40],"03":[41,120],"04":[121,400],"05":[401,1200],"06":[1201,4000],"07":[4001,12000],"08":[12001,19000]} },
+        { gasNo:"190", symbol:"(CH3)3SiH", name:"Trimethylsilane", bins:{"01":[5,12],"02":[13,40],"03":[41,120],"04":[121,400],"05":[401,1200],"06":[1201,4000],"07":[4001,12000],"08":[12001,19000]} },
+        { gasNo:"205", symbol:"SiH3Cl", name:"Chlorosilane", bins:{"01":[6,15],"02":[16,50],"03":[51,150],"04":[151,500],"05":[501,1500],"06":[1501,5000],"07":[5001,15000],"08":[15001,25000]} },
+        { gasNo:"266", symbol:"C5F8", name:"Octafluorocyclopentene", bins:{"01":[4,9],"02":[10,30],"03":[31,90],"04":[91,300],"05":[301,900],"06":[901,2000],"07":[2001,4600],"08":[4601,7700]} },
+        { gasNo:"277", symbol:"C3H9B", name:"Trimethylborane", bins:{"06":[841,2800]} },
+        { gasNo:"323", symbol:"CH3I", name:"Iodomethane", bins:{"01":[3,6],"02":[7,22],"03":[23,66],"04":[67,220],"05":[221,660],"06":[661,1400],"07":[1401,3000],"08":[3001,5000]} },
+        { gasNo:"360", symbol:"CF3I", name:"Trifluoroiodomethane", bins:{"01":[4,11],"02":[12,37],"03":[38,111],"04":[112,370],"05":[371,1110],"06":[1111,3700],"07":[3701,11100],"08":[11101,18500]} },
+        { gasNo:"393", symbol:"C3H2F4", name:"trans-1,3,3,3-tetrafluoropropene", bins:{"04":[76,250],"05":[251,750]} },
+        { gasNo:"509", symbol:"10%GeH4/H2", name:"10% Germane in Hydrogen", bins:{"01":[10,27],"02":[28,90],"03":[91,270],"04":[271,900],"05":[901,2700],"06":[2701,9000],"07":[9001,28500],"08":[28501,47500]} },
+        { gasNo:"514", symbol:"1%PH3/N2", name:"1% Phosphine in Nitrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} },
+        { gasNo:"516", symbol:"10%PH3/H2", name:"10% Phosphine in Hydrogen", bins:{"01":[11,29],"02":[30,97],"03":[98,291],"04":[292,970],"05":[971,2910],"06":[2911,9700],"07":[9701,29000],"08":[29001,48500]} },
+        { gasNo:"527", symbol:"10%PH3/N2", name:"10% Phosphine in Nitrogen", bins:{"05":[951,2850]} },
+        { gasNo:"546", symbol:"1%PH3/He", name:"1% Phosphine in Helium", bins:{"01":[13,36],"02":[37,120],"03":[121,360],"04":[361,1200],"05":[1201,3600],"06":[3601,12000],"07":[12001,36000],"08":[36001,60000]} },
+        { gasNo:"557", symbol:"1%B2H6/H2", name:"1% Diborane in Hydrogen", bins:{"01":[10,28],"02":[29,95],"03":[96,285],"04":[286,950],"05":[951,2850],"06":[2851,9500],"07":[9501,28500],"08":[28501,47500]} },
+        { gasNo:"563", symbol:"1%PH3/H2", name:"1% Phosphine in Hydrogen", bins:{"04":[301,1000]} },
+        { gasNo:"566", symbol:"10%F2/He", name:"10% Fluorine in Helium", bins:{"04":[361,1200]} },
+        { gasNo:"583", symbol:"15%PH3/H2", name:"15% Phosphine in Hydrogen", bins:{"01":[10,28],"02":[29,92],"03":[93,276],"04":[277,920],"05":[921,2760],"06":[2761,9200],"07":[9201,27600],"08":[27601,46000]} },
+        { gasNo:"604", symbol:"30%O2/He", name:"30% Oxygen in Helium", bins:{"01":[13,34],"02":[35,114],"03":[115,342],"04":[343,1140],"05":[1141,3420],"06":[3421,11400],"07":[11401,34200],"08":[34201,57000]} },
+        { gasNo:"607", symbol:"4%H2/N2", name:"4% Hydrogen in Nitrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} },
+        { gasNo:"654", symbol:"5%B2H6/N2", name:"5% Diborane in Nitrogen", bins:{"01":[11,29],"02":[30,97],"03":[98,291],"04":[292,971],"05":[972,2820],"06":[2821,9400],"07":[9401,29000],"08":[29001,48000]} },
+        { gasNo:"657", symbol:"3%B2H6/H2", name:"3% Diborane in Hydrogen", bins:{"01":[10,28],"02":[29,95],"03":[96,285],"04":[286,950],"05":[951,2850],"06":[2851,9500],"07":[9501,28500],"08":[28501,47500]} },
+        { gasNo:"677", symbol:"20%F2/He", name:"20% Fluorine in Helium", bins:{"04":[331,1100]} },
+        { gasNo:"693", symbol:"5%PH3/He", name:"5% Phosphine in Helium", bins:{"01":[13,36],"02":[37,120],"03":[121,360],"04":[361,1200],"05":[1201,3600],"06":[3601,12000],"07":[12001,36000],"08":[36001,58000]} },
+        { gasNo:"701", symbol:"10%B2H6/H2", name:"10% Diborane in Hydrogen", bins:{"01":[10,26],"02":[27,88],"03":[89,264],"04":[265,880],"05":[881,2640],"06":[2641,8800],"07":[8801,26400],"08":[26401,47000]} },
+        { gasNo:"722", symbol:"5%B2H6/H2", name:"5% Diborane in Hydrogen", bins:{"01":[9,26],"02":[27,97],"03":[98,290],"04":[291,1000],"05":[1001,3000],"06":[3001,9700],"07":[9701,29000],"08":[29001,48500]} },
+        { gasNo:"724", symbol:"1%AsH3/H2", name:"1% Arsine in Hydrogen", bins:{"01":[10,28],"02":[29,95],"03":[96,285],"04":[286,950],"05":[951,2850],"06":[2851,9500],"07":[9501,28500],"08":[28501,47500]} },
+        { gasNo:"754", symbol:"10%F2/Ar", name:"10% Fluorine in Argon", bins:{"04":[361,1200]} },
+        { gasNo:"759", symbol:"10%F2/N2", name:"10% Fluorine in Nitrogen", bins:{"04":[301,1000]} },
+        { gasNo:"897", symbol:"2.7%C2H4/He", name:"2.7% Ethylene in Helium", bins:{"01":[13,35],"02":[36,118],"03":[119,355],"04":[356,1180],"05":[1181,3550],"06":[3551,11800],"07":[11801,35500],"08":[35501,59000]} },
+        { gasNo:"898", symbol:"1%GeH4/H2", name:"1% Germane in Hydrogen", bins:{"01":[10,28],"02":[29,95],"03":[96,285],"04":[286,950],"05":[951,2850],"06":[2851,9500],"07":[9501,28500],"08":[28501,47500]} },
+        { gasNo:"939", symbol:"10%B2H6/He", name:"10% Diborane in Helium", bins:{"01":[13,35],"02":[36,115],"03":[116,345],"04":[346,1150],"05":[1151,3450],"06":[3451,11500],"07":[11501,34500],"08":[34501,57500]} },
+        { gasNo:"946", symbol:"30%C2H4/He", name:"30% Ethylene in Helium", bins:{"01":[12,30],"02":[31,100],"03":[101,300],"04":[301,1020],"05":[1021,3060],"06":[3061,10200],"07":[10201,30600],"08":[30601,51000]} },
+        { gasNo:"963", symbol:"20%F2/N2", name:"20% Fluorine in Nitrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,49000]} },
+        { gasNo:"980", symbol:"20%F2/Ar", name:"20% Fluorine in Argon", bins:{"01":[13,35],"02":[36,116],"03":[117,320],"04":[321,1100],"05":[1101,3300],"06":[3301,10800],"07":[10801,30000],"08":[30001,43000]} },
+        { gasNo:"0", symbol:"1%BCl3/He", name:"1% Boron Trichloride in Helium", bins:{"01":[13,36],"02":[37,120],"03":[121,360],"04":[361,1200],"05":[1201,3600],"06":[3601,12000],"07":[12001,36000],"08":[36001,60000]} },
+        { gasNo:"0", symbol:"1%BCl3/N2", name:"1% Boron Trichloride in Nitrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} },
+        { gasNo:"0", symbol:"2%B2H6/H2", name:"2% Diborane in Hydrogen", bins:{"01":[10,28],"02":[29,95],"03":[96,285],"04":[286,950],"05":[951,2850],"06":[2851,9500],"07":[9501,28500],"08":[25801,47500]} },
+        { gasNo:"0", symbol:"2%CH3SiH3/H2", name:"2% Methylsilane in Hydrogen", bins:{"01":[10,28],"02":[29,95],"03":[96,285],"04":[286,950],"05":[951,2850],"06":[2851,9500],"07":[9501,28500],"08":[25801,47500]} },
+        { gasNo:"0", symbol:"5%BCl3/He", name:"5% Boron Trichloride in Helium", bins:{"01":[13,35],"02":[36,116],"03":[117,360],"04":[361,1200],"05":[1201,3600],"06":[3601,12000],"07":[12001,34000],"08":[34001,57500]} },
+        { gasNo:"0", symbol:"5%CH3SiH3/Ar", name:"5% Methylsilane in Argon", bins:{"01":[12,34],"02":[35,114],"03":[115,342],"04":[343,1140],"05":[1141,3325],"06":[3326,10450],"07":[10451,28500],"08":[28501,40850]} },
+        { gasNo:"0", symbol:"15%B2H6/He", name:"15% Diborane in Helium", bins:{"01":[12,33],"02":[34,108],"03":[109,325],"04":[326,1085],"05":[1086,3300],"06":[3301,11000],"07":[11001,32500],"08":[32501,54000]} },
+        { gasNo:"0", symbol:"10%C2H2/Ar", name:"10% Acetylene in Argon", bins:{"01":[13,34],"02":[35,114],"03":[115,330],"04":[331,1100],"05":[1101,3300],"06":[3301,10400],"07":[10401,28500],"08":[28501,28501]} },
+        { gasNo:"0", symbol:"50ppmPH3/N2", name:"50ppm Phosphine in Nitrogen", bins:{"01":[11,30],"02":[31,100],"03":[101,300],"04":[301,1000],"05":[1001,3000],"06":[3001,10000],"07":[10001,30000],"08":[30001,50000]} }
+    ];
+
+    // 定义 GT-10 和 GT-20 的全部与限制级气路接口
+    const gt1020Ports = {
+        all: [
+            { value: "VS", text: "VS - Body 1-1/8\", 124 mm 1/4\" VCR" },
+            { value: "VX", text: "VX - Body 1-1/2\", 124 mm 1/4\" VCR" },
+            { value: "CX", text: "CX - Body 1-1/8\", 92 mm C-SEAL" },
+            { value: "DX", text: "DX - Body 1-1/8\", 79.8 mm C-SEAL" },
+            { value: "WX", text: "WX - Body 1-1/8\", 92 mm W-SEAL" },
+            { value: "YX", text: "YX - Body 1-1/8\", 79.8 mm W-SEAL" },
+            { value: "EX", text: "EX - Body 1-1/2\", 79.8 mm W-SEAL" }
+        ],
+        restricted: [
+            { value: "VS", text: "VS - Body 1-1/8\", 124 mm 1/4\" VCR" },
+            { value: "CX", text: "CX - Body 1-1/8\", 92 mm C-SEAL" },
+            { value: "WX", text: "WX - Body 1-1/8\", 92 mm W-SEAL" }
+        ]
+    };
+
+    let currentSelectedGas = gasesList[3]; // 默认 N2
+
+    function switchSeries(series) {
+        activeSeries = series;
+        const btns = document.querySelectorAll('.tab-btn');
+        btns[0].classList.toggle('active', series === 'GT1');
+        btns[1].classList.toggle('active', series === 'GT1020');
+        btns[2].classList.toggle('active', series === 'PT');
+        btns[3].classList.toggle('active', series === 'PS');
+        btns[4].classList.toggle('active', series === 'TARGETS');
+
+        document.getElementById('formGT1').style.display = (series === 'GT1') ? 'grid' : 'none';
+        document.getElementById('formGT1020').style.display = (series === 'GT1020') ? 'grid' : 'none';
+        document.getElementById('formPT').style.display = (series === 'PT') ? 'grid' : 'none';
+        document.getElementById('formPS').style.display = (series === 'PS') ? 'grid' : 'none';
+        document.getElementById('formTARGETS').style.display = (series === 'TARGETS') ? 'grid' : 'none';
+
+        if (series === 'GT1020') {
+            onGTModelChange();
+        } else {
+            updateModel();
+        }
+    }
+
+    // 根据选择的 GT-10 或 GT-20 型号动态更新气路接口下拉选项
+    function onGTModelChange() {
+        const modelVal = document.getElementById('modelGT1020').value;
+        const portSelect = document.getElementById('portGT1020');
+        const currentSelected = portSelect.value;
+
+        // 根据型号选择可选的气路接口选项数组
+        const allowedPorts = (modelVal === '20') ? gt1020Ports.restricted : gt1020Ports.all;
+
+        portSelect.innerHTML = '';
+        allowedPorts.forEach(port => {
+            const opt = document.createElement('option');
+            opt.value = port.value;
+            opt.textContent = port.text;
+            portSelect.appendChild(opt);
+        });
+
+        // 重新设置选中的接口（若原本选中的接口仍在可选项中则保留，否则默认选中第一个）
+        if (allowedPorts.some(p => p.value === currentSelected)) {
+            portSelect.value = currentSelected;
+        } else {
+            portSelect.value = allowedPorts[0].value;
+        }
+
+        updateModel();
+    }
+
+    function showGasList(type) {
+        renderGasDropdown(type, gasesList);
+        document.getElementById('gasDropdown' + type).style.display = 'block';
+    }
+
+    function filterGases(type) {
+        const input = document.getElementById('gasSearch' + type).value.toLowerCase().trim();
+        const filtered = gasesList.filter(g => 
+            g.symbol.toLowerCase().includes(input) || 
+            g.name.toLowerCase().includes(input)
+        );
+        renderGasDropdown(type, filtered);
+        document.getElementById('gasDropdown' + type).style.display = 'block';
+    }
+
+    function renderGasDropdown(type, list) {
+        const dropdown = document.getElementById('gasDropdown' + type);
+        dropdown.innerHTML = '';
+        
+        if (list.length === 0) {
+            dropdown.innerHTML = '<div class="dropdown-item" style="color:#999; font-weight:normal;">未找到匹配气体</div>';
+            return;
+        }
+
+        list.forEach(gas => {
+            const item = document.createElement('div');
+            item.className = 'dropdown-item';
+            item.innerText = gas.symbol;
+            item.onclick = function() {
+                selectGas(type, gas);
+            };
+            dropdown.appendChild(item);
+        });
+    }
+
+    function selectGas(type, gas) {
+        currentSelectedGas = gas;
+        document.getElementById('gasSearchGT1').value = gas.symbol;
+        document.getElementById('gasSearchGT1020').value = gas.symbol;
+        document.getElementById('gasDropdown' + type).style.display = 'none';
+        updateModel();
+    }
+
+    document.addEventListener('click', function(e) {
+        ['GT1', 'GT1020'].forEach(type => {
+            const container = document.getElementById('gasSearch' + type);
+            const dropdown = document.getElementById('gasDropdown' + type);
+            if (container && dropdown && !container.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+
+    function getSccmValue(valueId, unitId) {
+        const val = parseFloat(document.getElementById(valueId).value);
+        if (isNaN(val) || val <= 0) return 0;
+        const unit = document.getElementById(unitId).value;
+        return unit === 'SLM' ? val * 1000 : val;
+    }
+
+    function updateModel() {
+        const resultCodeElem = document.getElementById('resultCode');
+        const copyBtn = document.getElementById('copyBtn');
+
+        if (activeSeries === 'GT1') {
+            const sccm = getSccmValue('flowValueGT1', 'flowUnitGT1');
+            const valve = document.getElementById('valveGT1').value;
+            const port = document.getElementById('portGT1').value;
+            const protocol = document.getElementById('protocolGT1').value;
+            const detailElem = document.getElementById('flowDetailGT1');
+
+            const rawFlowVal = document.getElementById('flowValueGT1').value || '0';
+            const flowUnit = document.getElementById('flowUnitGT1').value;
+            const gasSymbol = currentSelectedGas ? currentSelectedGas.symbol : '';
+
+            if (sccm <= 0) {
+                resultCodeElem.innerHTML = '<span class="error-msg">请输入有效的流量值</span>';
+                detailElem.innerText = '匹配代号: 无';
+                copyBtn.disabled = true;
+                return;
+            }
+
+            // 1. 获取当前气体 Bin1 的最小流量下限
+            let minBinVal = Infinity;
+            for (let range of Object.values(currentSelectedGas.bins)) {
+                if (range[0] < minBinVal) minBinVal = range[0];
+            }
+
+            // 2. 匹配选定气体的 Bin 范围
+            let matchedBin = null;
+            if (sccm < minBinVal) {
+                matchedBin = '0X';
+            } else {
+                for (let [binKey, range] of Object.entries(currentSelectedGas.bins)) {
+                    if (sccm >= range[0] && sccm <= range[1]) {
+                        matchedBin = binKey;
+                        break;
+                    }
+                }
+            }
+
+            if (!matchedBin) {
+                resultCodeElem.innerHTML = `<span class="error-msg">流量超出 ${gasSymbol} 的 Bin 范围</span>`;
+                detailElem.innerText = '匹配代号: 超出范围';
+                copyBtn.disabled = true;
+                return;
+            }
+
+            // 3. 将 0X/01~08/09 等统一转换为 GT-110 的 1X/11~18/19 等格式
+            let gt1Code = (matchedBin === '0X') ? '1X' : ('1' + parseInt(matchedBin, 10));
+
+            detailElem.innerText = `匹配代号: ${gt1Code} (${gasSymbol})`;
+            // 逗号前后无空格: GT-111-NC-VS-ES,N2,30SCCM
+            resultCodeElem.innerText = `GT-1${gt1Code}-${valve}-${port}-${protocol},${gasSymbol},${rawFlowVal}${flowUnit}`;
+            copyBtn.disabled = false;
+
+        } else if (activeSeries === 'GT1020') {
+            const model = document.getElementById('modelGT1020').value;
+            const sccm = getSccmValue('flowValueGT1020', 'flowUnitGT1020');
+            const valve = document.getElementById('valveGT1020').value;
+            const port = document.getElementById('portGT1020').value;
+            const protocol = document.getElementById('protocolGT1020').value;
+            const binDetailElem = document.getElementById('binDetail');
+
+            const rawFlowVal = document.getElementById('flowValueGT1020').value || '0';
+            const flowUnit = document.getElementById('flowUnitGT1020').value;
+            const gasSymbol = currentSelectedGas ? currentSelectedGas.symbol : '';
+
+            if (sccm <= 0) {
+                resultCodeElem.innerHTML = '<span class="error-msg">请输入有效的流量值</span>';
+                binDetailElem.innerText = '匹配代号: 无';
+                copyBtn.disabled = true;
+                return;
+            }
+
+            let minBinVal = Infinity;
+            for (let range of Object.values(currentSelectedGas.bins)) {
+                if (range[0] < minBinVal) minBinVal = range[0];
+            }
+
+            let matchedBin = null;
+            if (sccm < minBinVal) {
+                matchedBin = '0X';
+            } else {
+                for (let [binKey, range] of Object.entries(currentSelectedGas.bins)) {
+                    if (sccm >= range[0] && sccm <= range[1]) {
+                        matchedBin = binKey;
+                        break;
+                    }
+                }
+            }
+
+            if (!matchedBin) {
+                resultCodeElem.innerHTML = `<span class="error-msg">流量超出 ${gasSymbol} 的 Bin 范围</span>`;
+                binDetailElem.innerText = '匹配代号: 超出范围';
+                copyBtn.disabled = true;
+                return;
+            }
+
+            let formattedBin = (matchedBin === '0X') ? '0X' : (matchedBin.length === 1 ? '0' + matchedBin : matchedBin);
+            binDetailElem.innerText = `匹配代号: Bin ${formattedBin} (${currentSelectedGas.symbol})`;
+            // 逗号前后无空格: ,气体,量程
+            resultCodeElem.innerText = `GT-${model}${formattedBin}-${valve}-${port}-${protocol},${gasSymbol},${rawFlowVal}${flowUnit}`;
+            copyBtn.disabled = false;
+
+        } else if (activeSeries === 'PT') {
+            const mat = document.getElementById('ptMat').value;
+            const port = document.getElementById('ptPort').value;
+            const orient = document.getElementById('ptOrient').value;
+            const analog = document.getElementById('ptAnalog').value;
+            const sw = document.getElementById('ptSwitch').value;
+            const elec = document.getElementById('ptElec').value;
+            const range = document.getElementById('ptRange').value;
+
+            resultCodeElem.innerText = `PT-8${mat}-${port}${orient}${analog}${sw}${elec}${range}`;
+            copyBtn.disabled = false;
+
+        } else if (activeSeries === 'PS') {
+            const mat = document.getElementById('psMat').value;
+            const port = document.getElementById('psPort').value;
+            const sw = document.getElementById('psSwitch').value;
+            const elec = document.getElementById('psElec').value;
+            const alarm = document.getElementById('psAlarm').value;
+            const point = document.getElementById('psPoint').value;
+
+            resultCodeElem.innerText = `PS-7${mat}-${port}${sw}${elec}-${alarm}-${point}`;
+            copyBtn.disabled = false;
+
+        } else if (activeSeries === 'TARGETS') {
+            const ch = document.getElementById('targetsChannels').value;
+            const range = document.getElementById('targetsRange').value;
+            const valve = document.getElementById('targetsValve').value;
+            const protocol = document.getElementById('targetsProtocol').value;
+
+            resultCodeElem.innerText = `TARGETS-${ch}-${range}-${valve}-${protocol}`;
+            copyBtn.disabled = false;
+        }
+    }
+
+    function copyCode() {
+        const codeText = document.getElementById('resultCode').innerText;
+        if (!codeText || codeText.includes('超出') || codeText.includes('有效')) return;
+
+        navigator.clipboard.writeText(codeText).then(() => {
+            const copyBtn = document.getElementById('copyBtn');
+            const originalText = copyBtn.innerText;
+            copyBtn.innerText = '复制成功！';
+            copyBtn.style.backgroundColor = '#28a745';
+            setTimeout(() => {
+                copyBtn.innerText = originalText;
+                copyBtn.style.backgroundColor = 'var(--primary-color)';
+            }, 1500);
+        });
+    }
+
+    window.onload = function() {
+        document.getElementById('gasSearchGT1').value = currentSelectedGas.symbol;
+        document.getElementById('gasSearchGT1020').value = currentSelectedGas.symbol;
+        onGTModelChange();
+    };
+</script>
+
+</body>
+</html>
